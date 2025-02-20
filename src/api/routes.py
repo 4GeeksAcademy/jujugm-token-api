@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User
+from api.models import db, User, Favorite
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
@@ -28,7 +28,7 @@ def handle_hello():
     return jsonify(response_body), 200
 
 
-@api.route('/signup/', methods=['POST'])
+@api.route('/signup', methods=['POST'])
 # @api.route('/signup/<int:id>', methods=['POST'])
 def create_user():
     try :
@@ -70,7 +70,8 @@ def login():
             return jsonify({"msg": "Bad password or email"}), 401
 
         access_token = create_access_token(identity=email)
-        return jsonify(access_token=access_token)
+        return jsonify({"access_token":access_token, "user": user.serialize()})
+    # esta ultima de serialize no la entiendo
 
 # # ESTE PROCESO DE DONDE SE GUARDA LOS LLEVA EL PERSONAL DE JWT    
     except NoResultFound:
@@ -97,4 +98,21 @@ def protected():
 # user = db.session.execute(db.select(User).filter_by(email=email)).scalar_one()
     # la entidad verificada se guarda en el espacio de memoria
     return jsonify(logged_in_as=current_user), 200
+
+@api.route('/favorites', methods=['GET'])
+@jwt_required()
+def protected_favorite():
+    current_user = get_jwt_identity()
+
+    user = db.session.execute(db.select(User).filter_by(email=current_user)).scalar_one()
+    print(user.id)
+    print(user.favorites)
+    # favorites = db.session.execute(db.select(Favorite).filter_by(user_id=user.id)).scalars()
+    # mapear
+    results = list(map(lambda item: item.serialize(), user.favorites))
+    print(results)
+    
+
+    
+    return jsonify({"results" : results}), 200
 
