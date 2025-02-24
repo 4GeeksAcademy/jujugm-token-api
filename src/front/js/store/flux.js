@@ -33,43 +33,76 @@ const getState = ({ getStore, getActions, setStore }) => {
 					method: "POST",
 					headers: myHeaders,
 					body: raw,
-					redirect: "follow"
+				
 				};
 
 				try {
-					const response = await fetch("https://potential-spork-7pvx7qxxxj9c64x-3001.app.github.dev/api/login", requestOptions);
-					const result = await response.json();
-
-					if (response.status === 200) {
-						localStorage.setItem("token", result.access_token)
-						return true
+					const response = await fetch("https://urban-spork-4vw9jq7pxwh7vgx-3001.app.github.dev/api/login", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify({ email, password })
+					});
+			
+					if (!response.ok) {
+						throw new Error(`Error en login: ${response.status}`);
 					}
+			
+					const data = await response.json();
+					console.log("🔑 Token recibido:", data.access_token);
+			
+					localStorage.setItem("token", data.access_token);
+					setStore({ auth: true }); //  Ahora sí se actualiza el estado
+			
 				} catch (error) {
 					console.error(error);
 					return false;
 				};
 			},
-			getProfile: async () => {
+			// con esta funcion pido el token
+			getProfileFavorites: async () => {
 				let token = localStorage.getItem("token")
 				try {
-					const response = await fetch("https://potential-spork-7pvx7qxxxj9c64x-3001.app.github.dev/api/profile", {
+					const response = await fetch("https://orange-capybara-pjprjxvrjpv4h7pp9-3001.app.github.dev/api/profile", {
 						method: "GET",
 						headers: {
 							"Authorization": `Bearer ${token}`
 						},
 					});
 					const result = await response.json();
-					console.log(result)
+					
 				} catch (error) {
 					console.error(error);
 				};
 			},
-			tokenVerify:()=>{
-				//crear un nuevo endpoint que se llame verificacion de token
-				//la peticion en la funcion tokenVerify del front deberia actualizar un estado auth:
+			tokenVerify: async () => {
+				let token = localStorage.getItem("token")
+				try {
+					const response = await fetch("https://urban-spork-4vw9jq7pxwh7vgx-3001.app.github.dev/api/favorites", {
+						method: "GET",
+						headers: {
+							"Authorization": `Bearer ${token}`
+						},
+					});
+					const result = await response.json();
+
+					if (response.status !== 200) {
+						setStore({auth:result.valid})
+					}
+					setStore({auth:result.valid})
+				} catch (error) {
+					console.error(error);
+				};
 			},
+			
+							//la peticion en la funcion tokenVerify del front deberia actualizar un estado auth:
+			
 			logout:()=>{
 				//borrar el token del localStorage
+					localStorage.removeItem("token");
+					setStore({ auth: false });
+					console.log("Usuario deslogueado");
 			},
 			getMessage: async () => {
 				try {

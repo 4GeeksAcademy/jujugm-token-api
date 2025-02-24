@@ -6,7 +6,7 @@ export const Profile = () => {
 
 
     useEffect(()=>{
-        actions.getProfile()
+        actions.getProfileFavorites()
     },[])
 
     return (

@@ -10,11 +10,14 @@ export const LoginForm = () => {
 
     async function handleSubmit(e) {
         e.preventDefault()
+        // console.log(email,password);
+
        let logged =  actions.login(email,password);
+    //    si se logea correctamente redirije si no no hace nada 
        if (logged) {
             navigate("/profile")
        }
-        
+        else return false
     }
 
     return (
